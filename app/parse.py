@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from app.models import Lead
+from app.models import DOORS_AMBIGUOUS, Lead
 
 # field_data name -> Lead attribute
 FIELD_MAP = {
@@ -16,8 +16,6 @@ FIELD_MAP = {
     "number_of_doors": "doors_raw",
     "message": "message",
 }
-
-DOORS_AMBIGUOUS = "doors_ambiguous"
 
 # A number with optional thousands separators, decimals and a "k" suffix:
 # "200", "1,200", "1.5k"

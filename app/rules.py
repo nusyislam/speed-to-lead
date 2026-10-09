@@ -3,11 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from app.models import Lead
-from app.parse import DOORS_AMBIGUOUS
-
-NO_VALID_CONTACT = "no_valid_contact"
-DOORS_UNKNOWN = "doors_unknown"
+from app.models import DOORS_AMBIGUOUS, DOORS_UNKNOWN, NO_VALID_CONTACT, Lead
 
 # Basic shape only: something@something.tld, no spaces. Whether the address is
 # real (test@test.com) is left to the LLM.

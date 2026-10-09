@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from app.models import Qualification
-from app.parse import DOORS_AMBIGUOUS, parse_doors, parse_lead
+from app.models import DOORS_AMBIGUOUS, Qualification
+from app.parse import parse_doors, parse_lead
 
 RECEIVED = datetime(2026, 10, 9, 20, 0, 5, tzinfo=timezone.utc)
 

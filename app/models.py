@@ -2,6 +2,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+# Flags added to Lead.flags
+DOORS_AMBIGUOUS = "doors_ambiguous"  # parse: several numbers, can't tell which is doors
+DOORS_UNKNOWN = "doors_unknown"  # rules: no door count at all
+NO_VALID_CONTACT = "no_valid_contact"  # rules: no valid email and no valid phone
+
 
 class Lead(BaseModel):
     leadgen_id: str  # "missing-<uuid>" when the payload has none

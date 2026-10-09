@@ -2,11 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.models import Lead
-from app.parse import DOORS_AMBIGUOUS
+from app.models import DOORS_AMBIGUOUS, DOORS_UNKNOWN, NO_VALID_CONTACT, Lead
 from app.rules import (
-    DOORS_UNKNOWN,
-    NO_VALID_CONTACT,
     apply_rules,
     doors_cap,
     is_valid_email,
