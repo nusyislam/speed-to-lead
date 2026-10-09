@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone
@@ -9,6 +10,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from app.llm import qualify
 from app.parse import parse_lead
 from app.rules import apply_rules, final_score
+from app.sinks.airtable import NOTIFY_FAILED, NOTIFY_SENT, build_record, save_lead
 from app.sinks.discord import send_to_discord
 
 load_dotenv()
@@ -50,8 +52,9 @@ async def process_lead(payload: dict[str, Any], received_at: datetime) -> None:
         llm = await qualify(lead, rules.rule_cap, rules.cap_reason)
         score = final_score(llm.fit_score, rules.rule_cap)
 
-        # Latency is measured just before sending, since the message includes it
-        latency = (datetime.now(timezone.utc) - received_at).total_seconds()
+        # Measured before the send, since the message includes it. The true
+        # end-to-end latency (to notified_at) goes to Airtable.
+        processed_in = (datetime.now(timezone.utc) - received_at).total_seconds()
         content = "\n".join(
             [
                 f"**New lead** `{lead.leadgen_id}`",
@@ -61,14 +64,27 @@ async def process_lead(payload: dict[str, Any], received_at: datetime) -> None:
                 f"Score: final {_show(score)} (LLM {_show(llm.fit_score)}, rule cap {_show(rules.rule_cap)})",
                 f"Reason: {llm.reason}",
                 f"Flags: {', '.join(lead.flags) or 'none'}",
-                f"Reply:\n> {llm.reply}",
-                f"Latency: {latency:.2f}s",
+                "Reply:\n> " + llm.reply.replace("\n", "\n> "),
+                f"Processed in: {processed_in:.2f}s",
             ]
         )
+
+        # Discord first: an Airtable problem must never delay the reply
         sent = await send_to_discord(content)
+        notified_at = datetime.now(timezone.utc) if sent else None
+
+        record = build_record(
+            lead=lead,
+            llm=llm,
+            rule_cap=rules.rule_cap,
+            final_score=score,
+            notify_status=NOTIFY_SENT if sent else NOTIFY_FAILED,
+            notified_at=notified_at,
+        )
+        stored = await asyncio.to_thread(save_lead, record)
         log.info(
-            "Lead %s processed, final=%s, fallback=%s, discord=%s, latency=%.2fs",
-            lead.leadgen_id, score, llm.fallback, sent, latency,
+            "Lead %s processed, final=%s, llm_fallback=%s, discord=%s, stored=%s, latency=%s",
+            lead.leadgen_id, score, llm.fallback, sent, stored, record["latency_seconds"],
         )
     except Exception:
         log.exception("Lead processing failed")
