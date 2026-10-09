@@ -31,3 +31,13 @@ class Qualification(BaseModel):
     reason: str = Field(max_length=140)
     reply: str = Field(max_length=320)
     pain_points: list[str] = Field(default_factory=list)
+
+
+class LLMResult(BaseModel):
+    """What llm.qualify returns: a validated Qualification, or the fallback."""
+
+    fit_score: int | None  # None when the LLM was unavailable
+    reason: str
+    reply: str
+    pain_points: list[str] = Field(default_factory=list)
+    fallback: bool = False

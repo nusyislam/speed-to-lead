@@ -14,6 +14,7 @@ MIN_PHONE_DIGITS = 10
 @dataclass(frozen=True)
 class RuleResult:
     rule_cap: int | None  # lowest cap that applies; None means no cap
+    cap_reason: str | None  # why each applied cap applies, "; "-joined; None if no cap
     lead: Lead  # copy of the input lead with rule flags added
 
 
@@ -41,20 +42,43 @@ def doors_cap(doors: int | None) -> int | None:
     return None
 
 
-def apply_rules(lead: Lead) -> RuleResult:
-    """Run every hard rule. Returns the lowest applicable cap and a copy of
-    the lead with any new flags appended (the input lead is not modified)."""
-    new_flags: list[str] = []
+def doors_cap_reason(doors: int) -> str:
+    if doors < 20:
+        return f"{doors} doors is under 20"
+    if doors < 50:
+        return f"{doors} doors is below the 50-500 target range"
+    return f"{doors} doors is above the 50-500 target range"
 
-    caps = [contact_cap(lead), doors_cap(lead.doors)]
-    if caps[0] is not None:
+
+def apply_rules(lead: Lead) -> RuleResult:
+    """Run every hard rule. Returns the lowest applicable cap, the reasons for
+    it, and a copy of the lead with any new flags appended (the input lead is
+    not modified)."""
+    new_flags: list[str] = []
+    caps: list[int] = []
+    reasons: list[str] = []
+
+    if (cap := contact_cap(lead)) is not None:
+        caps.append(cap)
+        reasons.append("no valid email or phone number")
         new_flags.append(NO_VALID_CONTACT)
+    if (cap := doors_cap(lead.doors)) is not None:
+        caps.append(cap)
+        reasons.append(doors_cap_reason(lead.doors))
     if lead.doors is None and DOORS_AMBIGUOUS not in lead.flags:
         new_flags.append(DOORS_UNKNOWN)
 
-    applied = [cap for cap in caps if cap is not None]
     flags = lead.flags + [f for f in new_flags if f not in lead.flags]
     return RuleResult(
-        rule_cap=min(applied) if applied else None,
+        rule_cap=min(caps) if caps else None,
+        cap_reason="; ".join(reasons) or None,
         lead=lead.model_copy(update={"flags": flags}),
     )
+
+
+def final_score(llm_score: int | None, rule_cap: int | None) -> int | None:
+    """Rules win: the LLM score capped by the rule cap. No LLM score means no
+    final score (a cap is a ceiling, not a score)."""
+    if llm_score is None:
+        return None
+    return llm_score if rule_cap is None else min(llm_score, rule_cap)

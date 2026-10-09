@@ -7,6 +7,12 @@ import httpx
 
 log = logging.getLogger(__name__)
 
+# The HTTP clients log full request URLs at INFO/DEBUG, and the webhook URL
+# contains its token. Set here so it applies wherever this sink is imported.
+# httpx2/httpcore2 are what the anthropic SDK uses.
+for name in ("httpx", "httpx2", "httpcore", "httpcore2"):
+    logging.getLogger(name).setLevel(logging.WARNING)
+
 TIMEOUT_SECONDS = 5.0
 MAX_CONTENT_LENGTH = 2000  # Discord rejects longer messages
 

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 import httpx
 import pytest
@@ -77,3 +78,24 @@ def test_long_content_truncated():
 
     send("x" * 5000, handler)
     assert len(bodies[0]["content"]) == MAX_CONTENT_LENGTH
+
+
+def leaked_records(caplog, status):
+    caplog.clear()
+    send("hi", lambda request: httpx.Response(status))
+    return [r for r in caplog.records if "discord.test" in r.getMessage()]
+
+
+@pytest.mark.parametrize("status", [204, 500])
+def test_webhook_url_never_logged(caplog, status):
+    # Relies only on importing app.sinks.discord (above), not app.main
+    caplog.set_level(logging.DEBUG)
+    assert leaked_records(caplog, status) == []
+
+
+def test_leak_check_would_catch_httpx_logging(caplog):
+    """Control: with httpx at INFO the URL does get logged, so the test above
+    is checking something real."""
+    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.INFO, logger="httpx")
+    assert leaked_records(caplog, 204)

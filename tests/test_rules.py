@@ -5,6 +5,7 @@ import pytest
 from app.models import DOORS_AMBIGUOUS, DOORS_UNKNOWN, NO_VALID_CONTACT, Lead
 from app.rules import (
     apply_rules,
+    final_score,
     doors_cap,
     is_valid_email,
     is_valid_phone,
@@ -162,3 +163,44 @@ def test_rerunning_is_idempotent():
     twice = apply_rules(once.lead)
     assert twice.rule_cap == once.rule_cap
     assert twice.lead.flags == once.lead.flags
+
+
+# --- cap reasons ---
+
+def test_no_cap_no_reason():
+    assert apply_rules(make_lead()).cap_reason is None
+
+
+@pytest.mark.parametrize(
+    "doors, reason",
+    [
+        (5, "5 doors is under 20"),
+        (30, "30 doors is below the 50-500 target range"),
+        (2000, "2000 doors is above the 50-500 target range"),
+    ],
+)
+def test_doors_cap_reason(doors, reason):
+    assert apply_rules(make_lead(doors=doors)).cap_reason == reason
+
+
+def test_all_cap_reasons_listed():
+    result = apply_rules(make_lead(email=None, phone=None, doors=2000))
+    assert result.cap_reason == "no valid email or phone number; 2000 doors is above the 50-500 target range"
+
+
+# --- final score ---
+
+@pytest.mark.parametrize(
+    "llm_score, rule_cap, expected",
+    [
+        (5, None, 5),
+        (5, 3, 3),
+        (2, 3, 2),
+        (3, 3, 3),
+        (5, 1, 1),
+        (None, None, None),
+        (None, 2, None),
+    ],
+)
+def test_final_score(llm_score, rule_cap, expected):
+    assert final_score(llm_score, rule_cap) == expected
