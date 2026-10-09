@@ -1,0 +1,14 @@
+{
+  "_expected": {"min": 1, "max": 2, "why": "Individual landlord with one unit (rule cap 2)"},
+  "leadgen_id": "fake-003",
+  "created_time": "2026-10-09T20:11:40+0000",
+  "ad_id": "120210000000000001",
+  "form_id": "880000000000001",
+  "field_data": [
+    {"name": "full_name", "values": ["Tom Becker"]},
+    {"name": "email", "values": ["tbecker1962@yahoo.com"]},
+    {"name": "phone_number", "values": ["614-555-0119"]},
+    {"name": "number_of_doors", "values": ["1"]},
+    {"name": "message", "values": ["I rent out the basement apartment in my house. Tenant pays by check and half the time its late. Is there something simple for just one unit?"]}
+  ]
+}

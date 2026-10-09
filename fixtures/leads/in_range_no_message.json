@@ -1,0 +1,14 @@
+{
+  "_expected": {"min": 4, "max": 4, "why": "In the 50-500 range, real PM company, no pain stated"},
+  "leadgen_id": "fake-002",
+  "created_time": "2026-10-09T20:05:12+0000",
+  "ad_id": "120210000000000001",
+  "form_id": "880000000000001",
+  "field_data": [
+    {"name": "full_name", "values": ["Marcus Chen"]},
+    {"name": "email", "values": ["marcus.chen@bayviewresidential.com"]},
+    {"name": "phone_number", "values": ["(415) 555-0187"]},
+    {"name": "company_name", "values": ["Bayview Residential Management"]},
+    {"name": "number_of_doors", "values": ["about 320"]}
+  ]
+}

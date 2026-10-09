@@ -3,12 +3,13 @@
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 import anthropic
 from pydantic import ValidationError
 
-from app.models import Lead, LLMResult, Qualification
+from app.models import NO_VALID_CONTACT, Lead, LLMResult, Qualification
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ QUALIFY_TOOL = {
         "properties": {
             "fit_score": {"type": "integer", "enum": [1, 2, 3, 4, 5]},
             "reason": {"type": "string", "description": "One sentence, at most 140 characters."},
-            "reply": {"type": "string", "description": "Plain text, at most 320 characters."},
+            "reply": {"type": "string", "description": "Plain text, at most 300 characters, no sign-off."},
             "pain_points": {"type": "array", "items": {"type": "string"}},
         },
         "required": ["fit_score", "reason", "reply", "pain_points"],
@@ -39,6 +40,27 @@ QUALIFY_TOOL = {
 }
 
 FALLBACK_REASON = "LLM unavailable"
+SIGN_OFF = "The Blaze team"  # added in code to every non-empty reply, after a blank line
+MAX_REPLY_CHARS = 320  # final reply including the sign-off (model gets 300)
+
+# A literal backslash-n (or backslash-r backslash-n) the model typed instead of a line break
+_LITERAL_NEWLINE_RE = re.compile(r"(?:\\r)?\\n")
+# A sign-off at the very end: "...today.\nThe Blaze team", "...today, the Blaze
+# team.", "[booking link] The Blaze team", "- Blaze Team". It must follow a line
+# break, punctuation, or a closing bracket/quote, so a sentence that ends
+# "...a call from the Blaze team." is not mistaken for a sign-off.
+# A closer ("Best,", "Thanks,") is removed with it only when it sits on its
+# own line right above, so "Hi Dana, thanks!" in the body is left alone.
+_CLOSERS = (
+    "all the best|best regards|kind regards|warm regards|regards|best|thanks|thank you"
+    "|cheers|sincerely|warmly|talk soon"
+)
+_SIGN_OFF_RE = re.compile(
+    rf"(?:\n[ \t]*(?:{_CLOSERS})[,.!]?[ \t]*\n|(?P<sep>^|[\n.!?,;:~\-\])\"']))\s*"
+    r"(?:[-~]\s*)?(?:the\s+)?blaze\s+team[\s.!]*$",
+    re.IGNORECASE,
+)
+
 FALLBACK_REPLIES = {
     # Tier 1-2: polite, no sales push, no link
     "low": "Hi {first_name}, thanks for reaching out to Blaze. We've received your message and will be in touch if we can help.",
@@ -70,7 +92,7 @@ def build_user_message(lead: Lead, rule_cap: int | None, cap_reason: str | None)
         indent=2,
     )
     # Escape angle brackets so lead text can't close the <lead_data> block.
-    # < and > are still valid JSON for the same characters.
+    # \u003c and \u003e are still valid JSON for the same characters.
     lead_data = lead_data.replace("<", "\\u003c").replace(">", "\\u003e")
     cap_line = (
         f"Rule cap: {rule_cap} ({cap_reason})" if rule_cap is not None else "Rule cap: none"
@@ -79,6 +101,9 @@ def build_user_message(lead: Lead, rule_cap: int | None, cap_reason: str | None)
 
 
 def fallback_result(lead: Lead, rule_cap: int | None) -> LLMResult:
+    if NO_VALID_CONTACT in lead.flags:
+        # Nowhere to send a reply, same rule as the prompt
+        return LLMResult(fit_score=None, reason=FALLBACK_REASON, reply="", fallback=True)
     if rule_cap is None:
         tier = "none"
     elif rule_cap <= 2:
@@ -89,12 +114,37 @@ def fallback_result(lead: Lead, rule_cap: int | None) -> LLMResult:
     return LLMResult(
         fit_score=None,
         reason=FALLBACK_REASON,
-        reply=FALLBACK_REPLIES[tier].format(first_name=first_name),
+        reply=finalize_reply(FALLBACK_REPLIES[tier].format(first_name=first_name)),
         fallback=True,
     )
 
 
-def parse_response(response) -> Qualification:
+def strip_sign_off(text: str) -> str:
+    """Remove any trailing sign-offs (repeatedly, in case there are two).
+    Keeps sentence-ending punctuation and closing brackets/quotes before
+    them; drops commas, dashes, and line breaks."""
+    while True:
+        match = _SIGN_OFF_RE.search(text)
+        if not match:
+            return text.rstrip()
+        sep = match.group("sep")
+        text = text[: match.start()] + (sep if sep and sep in ".!?])\"'" else "")
+
+
+def finalize_reply(text: str) -> str:
+    """Clean up the reply body and add the sign-off. An empty body stays empty
+    (no valid contact means nothing is sent). Never longer than the body + 16."""
+    text = _LITERAL_NEWLINE_RE.sub(" ", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)  # spaces left by the replacement
+    text = strip_sign_off(text.strip())
+    if not text:
+        return ""
+    return f"{text}\n\n{SIGN_OFF}"
+
+
+def parse_response(response) -> tuple[Qualification, int]:
+    """Returns the validated answer and how many em dashes were stripped from
+    the reply (so the eval can tell whether the prompt rule is being followed)."""
     if response.stop_reason == "refusal":
         raise InvalidResponse("model refused")
     for block in response.content:
@@ -105,8 +155,12 @@ def parse_response(response) -> Qualification:
                 raise InvalidResponse(f"schema validation failed: {exc.error_count()} errors") from exc
             # The prompt forbids em dashes; clean up any that slip through
             # rather than spending a retry on them (never makes the reply longer).
-            qualification.reply = qualification.reply.replace(" — ", ", ").replace("—", "-")
-            return qualification
+            stripped = qualification.reply.count("—")
+            reply = qualification.reply.replace(" — ", ", ").replace("—", "-")
+            # The sign-off is added here, not by the model. Validation capped
+            # the model's text at 300, so the result stays within 320.
+            qualification.reply = finalize_reply(reply)
+            return qualification, stripped
     raise InvalidResponse(f"no {TOOL_NAME} call (stop_reason={response.stop_reason})")
 
 
@@ -144,8 +198,8 @@ async def qualify(
                 tool_choice={"type": "tool", "name": TOOL_NAME},
                 output_config={"effort": "low"},
             )
-            q = parse_response(response)
-            return LLMResult(**q.model_dump())
+            q, stripped = parse_response(response)
+            return LLMResult(**q.model_dump(), em_dashes_stripped=stripped)
         except anthropic.APIStatusError as exc:
             log.warning("LLM attempt %d for %s: HTTP %s", attempt, lead.leadgen_id, exc.status_code)
         except anthropic.APITimeoutError:

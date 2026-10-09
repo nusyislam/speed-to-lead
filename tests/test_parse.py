@@ -244,6 +244,10 @@ def test_range_doors_keeps_raw_no_flag():
 
 # --- Qualification schema ---
 
+def test_qualification_reply_300_is_valid():
+    assert len(Qualification(fit_score=4, reason="ok", reply="x" * 300).reply) == 300
+
+
 def test_qualification_valid():
     q = Qualification(fit_score=5, reason="ok", reply="hi", pain_points=["late rent"])
     assert q.fit_score == 5
@@ -255,7 +259,7 @@ def test_qualification_valid():
         {"fit_score": 0},
         {"fit_score": 6},
         {"reason": "x" * 141},
-        {"reply": "x" * 321},
+        {"reply": "x" * 301},  # the model gets 300; the sign-off is added after
     ],
 )
 def test_qualification_rejects_out_of_range(overrides):

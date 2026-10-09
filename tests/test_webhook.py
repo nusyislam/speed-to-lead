@@ -117,6 +117,37 @@ def test_llm_fallback_message(monkeypatch, sent):
     assert "Score: final none (LLM none, rule cap none)" in sent[0]
     assert "Reason: LLM unavailable" in sent[0]
     assert "> Hi Dana, thanks for reaching out to Blaze!" in sent[0]
+    assert "\n> The Blaze team\n" in sent[0]  # every reply line is quoted
+
+
+def test_no_valid_contact_shows_no_reply_note(monkeypatch, sent, saved):
+    async def empty_reply(lead, rule_cap, cap_reason=None):
+        return LLMResult(fit_score=1, reason="Junk submission.", reply="")
+
+    monkeypatch.setattr(main, "qualify", empty_reply)
+    client.post("/webhook/facebook-lead", json={"leadgen_id": "x", "field_data": []})
+    assert "Reply: (no reply sent: no valid contact)" in sent[0]
+    assert "> " not in sent[0]  # no empty quote
+    assert saved[0]["reply"] == ""
+
+
+def test_no_valid_contact_fallback_also_shows_note(monkeypatch, sent):
+    async def unavailable(lead, rule_cap, cap_reason=None):
+        return fallback_result(lead, rule_cap)
+
+    monkeypatch.setattr(main, "qualify", unavailable)
+    client.post("/webhook/facebook-lead", json={"leadgen_id": "x", "field_data": []})
+    assert "Reply: (no reply sent: no valid contact)" in sent[0]
+
+
+def test_empty_reply_with_valid_contact_is_labelled(monkeypatch, sent):
+    async def empty_reply(lead, rule_cap, cap_reason=None):
+        return LLMResult(fit_score=4, reason="r", reply="")
+
+    monkeypatch.setattr(main, "qualify", empty_reply)
+    client.post("/webhook/facebook-lead", json=SAMPLE)
+    assert "Reply: (empty)" in sent[0]
+    assert "no valid contact" not in sent[0]
 
 
 def test_discord_then_airtable_with_true_latency(sent, saved, events):

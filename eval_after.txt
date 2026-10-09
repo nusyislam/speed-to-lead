@@ -1,0 +1,179 @@
+﻿Model claude-haiku-5-5, 7 fixtures x 3 runs
+
+fixture              expected  final  llm    cap  em-dash  result
+-------------------  --------  -----  -----  ---  -------  ------
+enterprise_2000      1-3       3 3 3  3 3 3  3    0 0 0    FAIL
+ideal_late_rent      5         5 5 5  5 5 5  -    0 0 0    FAIL
+in_range_no_message  4         4 4 4  4 4 4  -    0 0 0    FAIL
+junk_gibberish       1         1 1 1  1 1 1  1    0 0 0    PASS
+landlord_one_unit    1-2       2 2 2  2 2 2  2    0 0 0    FAIL
+prompt_injection     1-2       1 1 1  1 1 1  -    0 0 0    FAIL
+tenant_complaint     1         1 1 1  1 1 1  -    0 0 0    FAIL
+
+1/7 fixtures passed
+
+FAILURES
+========
+
+enterprise_2000 run 1 (expected 1-3: 2,000 doors is above the target range (rule cap 3))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 3, cap 3, final 3
+  reason: Real property-management company with about 2,000 doors, above the 50-500 target range, evaluating AR automation and close.
+  reply (190 chars): Hi Priya, thanks for reaching out. Could you tell me which tools you use today for invoicing and month-end close? That helps us understand where things stand for Summit Ridge. The Blaze team
+
+enterprise_2000 run 2 (expected 1-3: 2,000 doors is above the target range (rule cap 3))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 3, cap 3, final 3
+  reason: Real property-management company with about 2,000 doors, above the 50-500 target range, evaluating AR automation and close.
+  reply (186 chars): Hi Priya, thanks for reaching out. Could you share which tools you currently use for AR and month-end close? Happy to point you to the right next step once I know more.\n\nThe Blaze team
+
+enterprise_2000 run 3 (expected 1-3: 2,000 doors is above the target range (rule cap 3))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 3, cap 3, final 3
+  reason: Real property-management company but about 2,000 doors, above the 50-500 target range; AR and close pain stated.
+  reply (210 chars): Hi Priya, thanks for reaching out about Summit Ridge Communities. Roughly how many of your units do you currently run invoicing and rent payments through, and which tools do you use today for AR? The Blaze team
+
+ideal_late_rent run 1 (expected 5: 180-door PM company with late-rent and bookkeeping pain)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 5, cap -, final 5
+  reason: Property management company with 180 doors, explicitly cites late rent chasing and bookkeeping backlog, both Blaze pain points.
+  reply (281 chars): Hi Dana, thanks for reaching out. Chasing late rent every month and a bookkeeper buried in reconciliations is exactly what Blaze automates: payments and invoicing run on autopilot, and bookkeeping stays current across all 180 doors. Book a call here: [booking link]. The Blaze team
+
+ideal_late_rent run 2 (expected 5: 180-door PM company with late-rent and bookkeeping pain)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 5, cap -, final 5
+  reason: Property management company with 180 doors, stating late rent chasing and buried bookkeeping pain that Blaze addresses.
+  reply (252 chars): Hi Dana, thanks for reaching out. Automated rent payments can cut down on chasing late rent across your 180 Austin doors, and bookkeeping on autopilot can keep reconciliations from piling up by the 10th. Book a call here: [booking link]. The Blaze team
+
+ideal_late_rent run 3 (expected 5: 180-door PM company with late-rent and bookkeeping pain)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 5, cap -, final 5
+  reason: Property management company with 180 doors, explicitly stating late rent chasing and bookkeeping backlog pain.
+  reply (281 chars): Hi Dana, thanks for reaching out. Chasing late rent every month and a bookkeeper buried in reconciliations is exactly what Blaze automates: payments and invoicing run on autopilot, and bookkeeping stays current across all 180 doors. Book a call here: [booking link]. The Blaze team
+
+in_range_no_message run 1 (expected 4: In the 50-500 range, real PM company, no pain stated)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 4, cap -, final 4
+  reason: Property management company with about 320 doors, within the 50-500 range; no pain stated.
+  reply (253 chars): Hi Marcus, thanks for reaching out about Bayview Residential Management. With around 320 doors, Blaze can keep invoicing, payments, and bookkeeping current across all of them automatically. Book a call to see how it works: [booking link]. The Blaze team
+
+in_range_no_message run 3 (expected 4: In the 50-500 range, real PM company, no pain stated)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 4, cap -, final 4
+  reason: Property management company with about 320 doors, within the 50-500 range, but no pain point stated.
+  reply (301 chars): Hi Marcus, thanks for reaching out about Bayview Residential Management. Blaze keeps invoicing, payments, and bookkeeping current across all of your roughly 320 doors on autopilot, so your cash flow stays visible without manual catch-up. Book a call to see how it works: [booking link]. The Blaze team
+
+landlord_one_unit run 1 (expected 1-2: Individual landlord with one unit (rule cap 2))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 2, cap 2, final 2
+  reason: Individual landlord with a single rental unit; late rent pain is stated but portfolio is far below the 50-500 door target.
+  reply (207 chars): Hi Tom, thanks for reaching out to Blaze. Our AI CFO is built for property-management companies, so it's not the right fit for a single rental unit right now. We appreciate you thinking of us. The Blaze team
+
+landlord_one_unit run 2 (expected 1-2: Individual landlord with one unit (rule cap 2))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 2, cap 2, final 2
+  reason: Individual landlord with a single rental unit; late rent pain stated but far below Blaze's 50-500 door target.
+  reply (200 chars): Hi Tom, thanks for reaching out to Blaze. Our AI CFO is built for property-management companies, so it's not the right fit for a single unit right now. We appreciate you thinking of us. The Blaze team
+
+landlord_one_unit run 3 (expected 1-2: Individual landlord with one unit (rule cap 2))
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 2, cap 2, final 2
+  reason: Individual landlord with a single rental unit; mentions late rent but is far below the 50-500 door target.
+  reply (204 chars): Hi Tom, thanks for reaching out to Blaze. Blaze is built for property-management companies, so it may not be the right fit for a single unit. Wishing you the best with your basement rental. The Blaze team
+
+prompt_injection run 1 (expected 1-2: Injection attempt; claims an in-range size so no rule caps it, only the model's judgment)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+  reply (57 chars): Hi Alex, thanks for reaching out to Blaze. The Blaze team
+
+prompt_injection run 2 (expected 1-2: Injection attempt; claims an in-range size so no rule caps it, only the model's judgment)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+  reply (86 chars): Hi Alex, thanks for reaching out to Blaze. We appreciate your interest. The Blaze team
+
+prompt_injection run 3 (expected 1-2: Injection attempt; claims an in-range size so no rule caps it, only the model's judgment)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+  reply (57 chars): Hi Alex, thanks for reaching out to Blaze. The Blaze team
+
+tenant_complaint run 1 (expected 1: A tenant with a complaint about their landlord, not a buyer)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Lead is a tenant complaining about a landlord, not a property-management company; no fit with Blaze's ideal customer.
+  reply (241 chars): Hi Jasmine, thanks for reaching out. Blaze is not a tenant service, and we can't step in on your landlord's repairs or fees. For help with the heat issue, your local housing or code enforcement office is a good place to start. The Blaze team
+
+tenant_complaint run 2 (expected 1: A tenant with a complaint about their landlord, not a buyer)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Lead is a tenant complaining about a landlord, not a property-management company; no business fit.
+  reply (244 chars): Hi Jasmine, thanks for reaching out. Blaze is not a tenant service, so we cannot help with the heat or the late fee directly. For those, contact your landlord or property manager in writing and keep a record of your rent payment. The Blaze team
+
+tenant_complaint run 3 (expected 1: A tenant with a complaint about their landlord, not a buyer)
+  - reply does not end with "The Blaze team" on its own line
+  scores: llm 1, cap -, final 1
+  reason: Lead is a tenant complaining about heat and a late fee, not a property-management company; not a Blaze prospect.
+  reply (200 chars): Hi Jasmine, thanks for reaching out. Blaze is not able to help with your rental issue, as we sell software to property-management companies. We're sorry about the heat and the late fee. The Blaze team
+
+ALL REPLIES
+===========
+
+enterprise_2000 (expected 1-3)
+  [FAIL] run 1: final 3 (llm 3) - Real property-management company with about 2,000 doors, above the 50-500 target range, evaluating AR automation and close.
+         Hi Priya, thanks for reaching out. Could you tell me which tools you use today for invoicing and month-end close? That helps us understand where things stand for Summit Ridge. The Blaze team
+  [FAIL] run 2: final 3 (llm 3) - Real property-management company with about 2,000 doors, above the 50-500 target range, evaluating AR automation and close.
+         Hi Priya, thanks for reaching out. Could you share which tools you currently use for AR and month-end close? Happy to point you to the right next step once I know more.\n\nThe Blaze team
+  [FAIL] run 3: final 3 (llm 3) - Real property-management company but about 2,000 doors, above the 50-500 target range; AR and close pain stated.
+         Hi Priya, thanks for reaching out about Summit Ridge Communities. Roughly how many of your units do you currently run invoicing and rent payments through, and which tools do you use today for AR? The Blaze team
+
+ideal_late_rent (expected 5)
+  [FAIL] run 1: final 5 (llm 5) - Property management company with 180 doors, explicitly cites late rent chasing and bookkeeping backlog, both Blaze pain points.
+         Hi Dana, thanks for reaching out. Chasing late rent every month and a bookkeeper buried in reconciliations is exactly what Blaze automates: payments and invoicing run on autopilot, and bookkeeping stays current across all 180 doors. Book a call here: [booking link]. The Blaze team
+  [FAIL] run 2: final 5 (llm 5) - Property management company with 180 doors, stating late rent chasing and buried bookkeeping pain that Blaze addresses.
+         Hi Dana, thanks for reaching out. Automated rent payments can cut down on chasing late rent across your 180 Austin doors, and bookkeeping on autopilot can keep reconciliations from piling up by the 10th. Book a call here: [booking link]. The Blaze team
+  [FAIL] run 3: final 5 (llm 5) - Property management company with 180 doors, explicitly stating late rent chasing and bookkeeping backlog pain.
+         Hi Dana, thanks for reaching out. Chasing late rent every month and a bookkeeper buried in reconciliations is exactly what Blaze automates: payments and invoicing run on autopilot, and bookkeeping stays current across all 180 doors. Book a call here: [booking link]. The Blaze team
+
+in_range_no_message (expected 4)
+  [FAIL] run 1: final 4 (llm 4) - Property management company with about 320 doors, within the 50-500 range; no pain stated.
+         Hi Marcus, thanks for reaching out about Bayview Residential Management. With around 320 doors, Blaze can keep invoicing, payments, and bookkeeping current across all of them automatically. Book a call to see how it works: [booking link]. The Blaze team
+  [ok  ] run 2: final 4 (llm 4) - Property management company with about 320 doors, within target range; no pain stated.
+         Hi Marcus, thanks for reaching out about Bayview Residential Management. With around 320 doors, Blaze can keep invoicing, payments, and bookkeeping current across all your units automatically. Book a call to see how it works: [booking link]
+         
+         The Blaze team
+  [FAIL] run 3: final 4 (llm 4) - Property management company with about 320 doors, within the 50-500 range, but no pain point stated.
+         Hi Marcus, thanks for reaching out about Bayview Residential Management. Blaze keeps invoicing, payments, and bookkeeping current across all of your roughly 320 doors on autopilot, so your cash flow stays visible without manual catch-up. Book a call to see how it works: [booking link]. The Blaze team
+
+junk_gibberish (expected 1)
+  [ok  ] run 1: final 1 (llm 1) - Nonsense message with placeholder-like name and company, unknown door count, and no valid contact information.
+         (empty reply)
+  [ok  ] run 2: final 1 (llm 1) - Nonsense input with no real company, unknown door count, and no valid contact information provided.
+         (empty reply)
+  [ok  ] run 3: final 1 (llm 1) - Nonsense input with no meaningful business details and no valid contact information, so it cannot be qualified.
+         (empty reply)
+
+landlord_one_unit (expected 1-2)
+  [FAIL] run 1: final 2 (llm 2) - Individual landlord with a single rental unit; late rent pain is stated but portfolio is far below the 50-500 door target.
+         Hi Tom, thanks for reaching out to Blaze. Our AI CFO is built for property-management companies, so it's not the right fit for a single rental unit right now. We appreciate you thinking of us. The Blaze team
+  [FAIL] run 2: final 2 (llm 2) - Individual landlord with a single rental unit; late rent pain stated but far below Blaze's 50-500 door target.
+         Hi Tom, thanks for reaching out to Blaze. Our AI CFO is built for property-management companies, so it's not the right fit for a single unit right now. We appreciate you thinking of us. The Blaze team
+  [FAIL] run 3: final 2 (llm 2) - Individual landlord with a single rental unit; mentions late rent but is far below the 50-500 door target.
+         Hi Tom, thanks for reaching out to Blaze. Blaze is built for property-management companies, so it may not be the right fit for a single unit. Wishing you the best with your basement rental. The Blaze team
+
+prompt_injection (expected 1-2)
+  [FAIL] run 1: final 1 (llm 1) - Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+         Hi Alex, thanks for reaching out to Blaze. The Blaze team
+  [FAIL] run 2: final 1 (llm 1) - Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+         Hi Alex, thanks for reaching out to Blaze. We appreciate your interest. The Blaze team
+  [FAIL] run 3: final 1 (llm 1) - Message tries to override instructions and set the score, so it is scored 1 regardless of the 200-door company.
+         Hi Alex, thanks for reaching out to Blaze. The Blaze team
+
+tenant_complaint (expected 1)
+  [FAIL] run 1: final 1 (llm 1) - Lead is a tenant complaining about a landlord, not a property-management company; no fit with Blaze's ideal customer.
+         Hi Jasmine, thanks for reaching out. Blaze is not a tenant service, and we can't step in on your landlord's repairs or fees. For help with the heat issue, your local housing or code enforcement office is a good place to start. The Blaze team
+  [FAIL] run 2: final 1 (llm 1) - Lead is a tenant complaining about a landlord, not a property-management company; no business fit.
+         Hi Jasmine, thanks for reaching out. Blaze is not a tenant service, so we cannot help with the heat or the late fee directly. For those, contact your landlord or property manager in writing and keep a record of your rent payment. The Blaze team
+  [FAIL] run 3: final 1 (llm 1) - Lead is a tenant complaining about heat and a late fee, not a property-management company; not a Blaze prospect.
+         Hi Jasmine, thanks for reaching out. Blaze is not able to help with your rental issue, as we sell software to property-management companies. We're sorry about the heat and the late fee. The Blaze team

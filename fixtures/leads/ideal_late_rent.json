@@ -1,0 +1,15 @@
+{
+  "_expected": {"min": 5, "max": 5, "why": "180-door PM company with late-rent and bookkeeping pain"},
+  "leadgen_id": "fake-001",
+  "created_time": "2026-10-09T20:00:00+0000",
+  "ad_id": "120210000000000001",
+  "form_id": "880000000000001",
+  "field_data": [
+    {"name": "full_name", "values": ["Dana Ruiz"]},
+    {"name": "email", "values": ["dana@ruizproperties.com"]},
+    {"name": "phone_number", "values": ["+15125550142"]},
+    {"name": "company_name", "values": ["Ruiz Property Group"]},
+    {"name": "number_of_doors", "values": ["180"]},
+    {"name": "message", "values": ["Chasing late rent every month is killing us. 180 doors across Austin and my bookkeeper is buried in reconciliations by the 10th."]}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_expected": {"min": 1, "max": 3, "why": "2,000 doors is above the target range (rule cap 3)"},
+  "leadgen_id": "fake-006",
+  "created_time": "2026-10-09T20:30:15+0000",
+  "ad_id": "120210000000000001",
+  "form_id": "880000000000001",
+  "field_data": [
+    {"name": "full_name", "values": ["Priya Natarajan"]},
+    {"name": "email", "values": ["pnatarajan@summitridgecommunities.com"]},
+    {"name": "phone_number", "values": ["+1 (480) 555-0133"]},
+    {"name": "company_name", "values": ["Summit Ridge Communities"]},
+    {"name": "number_of_doors", "values": ["2,000"]},
+    {"name": "message", "values": ["VP of Finance here. We manage roughly 2,000 units across 14 communities in TX and AZ and are evaluating options for AR automation and month-end close ahead of our software renewal in Q1."]}
+  ]
+}

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 
 from app.llm import qualify
+from app.models import NO_VALID_CONTACT
 from app.parse import parse_lead
 from app.rules import apply_rules, final_score
 from app.sinks.airtable import NOTIFY_FAILED, NOTIFY_SENT, build_record, save_lead
@@ -44,6 +45,14 @@ def _show(value: Any) -> str:
     return "none" if value is None else str(value)
 
 
+def _reply_line(reply: str, flags: list[str]) -> str:
+    if not reply.strip():
+        if NO_VALID_CONTACT in flags:
+            return "Reply: (no reply sent: no valid contact)"
+        return "Reply: (empty)"
+    return "Reply:\n> " + reply.replace("\n", "\n> ")
+
+
 async def process_lead(payload: dict[str, Any], received_at: datetime) -> None:
     try:
         lead = parse_lead(payload, received_at=received_at)
@@ -64,7 +73,7 @@ async def process_lead(payload: dict[str, Any], received_at: datetime) -> None:
                 f"Score: final {_show(score)} (LLM {_show(llm.fit_score)}, rule cap {_show(rules.rule_cap)})",
                 f"Reason: {llm.reason}",
                 f"Flags: {', '.join(lead.flags) or 'none'}",
-                "Reply:\n> " + llm.reply.replace("\n", "\n> "),
+                _reply_line(llm.reply, lead.flags),
                 f"Processed in: {processed_in:.2f}s",
             ]
         )

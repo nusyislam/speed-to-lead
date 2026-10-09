@@ -29,7 +29,7 @@ class Lead(BaseModel):
 class Qualification(BaseModel):
     fit_score: int = Field(ge=1, le=5)
     reason: str = Field(max_length=140)
-    reply: str = Field(max_length=320)
+    reply: str = Field(max_length=300)  # the model's text; the sign-off is added after (<= 320 total)
     pain_points: list[str] = Field(default_factory=list)
 
 
@@ -41,3 +41,4 @@ class LLMResult(BaseModel):
     reply: str
     pain_points: list[str] = Field(default_factory=list)
     fallback: bool = False
+    em_dashes_stripped: int = 0  # em dashes removed from the model's reply
